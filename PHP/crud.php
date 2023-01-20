@@ -3,12 +3,12 @@
 <?php
     include_once("sql/conexao.php");
     include_once("sql/delete.php");
-    define("PAGINAS",5);
+    define("PAGINAS",4);
     $sqltodos = $conexao->PREPARE("SELECT count(*) as qte FROM usuarios"); 
     $sqltodos->execute();
     $sqltodosarray = $sqltodos->fetchAll(PDO::FETCH_ASSOC);
     $registros = $sqltodosarray[0]["qte"];
-    $offset = 0;
+    $valorOFFSET = "0";    
     //print INTVAL($registros/PAGINAS);
 ?>
 <style>
@@ -68,11 +68,10 @@
         </button>
     </form>
 </div>
-
 <div id="ldireito">
     <?php
         // CRUD - Insert(create)
-        /////////////////////////////////////])||isset($_POST['senha'])||isset($_POST['email'])){
+        if(isset($_POST['senha'])||isset($_POST['email'])){
             print "Code Inserção";
             $nome = $_POST['nome'];
             $email = $_POST['email'];
@@ -94,12 +93,19 @@
             //print "<br>".$resultado;
         }
         //seleção
-        $valor1 = 12;
-        $valor2 = 0;
-        $sqlselect = $conexao->PREPARE("select * from usuarios LIMIT :L OFFSET :O");    
-        $sqlselect->bindParam(":L",$valor1);
-        $sqlselect->bindParam(":O",$valor2);
-        $sqlselect->execute();
+        $valorLIMIT = PAGINAS;
+        if(isset($_GET['paginacao'])){
+            $paginacao = $_GET['paginacao'];
+            $valorOFFSET = $paginacao * PAGINAS;
+            $sql = "select * from usuarios LIMIT ".$valorLIMIT." OFFSET ".$valorOFFSET;
+            $sqlselect = $conexao->PREPARE($sql); 
+            $sqlselect->execute();
+        }
+        else{
+            $sql = "select * from usuarios LIMIT ".$valorLIMIT." OFFSET ".$valorOFFSET;
+            $sqlselect = $conexao->PREPARE($sql); 
+            $sqlselect->execute();
+        }                
     ?>
         <table>
             <thead>
@@ -137,11 +143,102 @@
     <div class="d-flex justify-content-center">
         <nav aria-label="Page navigation example">
             <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Primeiro</a></li>
-                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Último</a></li>
+                <?php 
+                    if($valorOFFSET != 0){
+                        print "<li class='page-item'><a class='page-link' href='?paginacao=0'>Primeiro</a></li>";
+                    }
+                    $fim = intval($registros/PAGINAS);
+                    $inicio = 0;
+                    $exato = ($registros/PAGINAS - intval($registros/PAGINAS))==0?true:false;                   
+                    if($exato == true){
+                        for($inicio;$inicio<$fim;$inicio++){
+                            if(!isset($paginacao)){
+                                if($inicio == 0){
+                                    print "
+                                        <li class='page-item'><a class='page-link bg-primary text-white' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                                else{
+                                    print "
+                                        <li class='page-item'><a class='page-link' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                            }
+                            else{
+                                if($paginacao == $inicio){
+                                    print "
+                                        <li class='page-item'><a class='page-link bg-primary text-white' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                                else{
+                                    print "
+                                        <li class='page-item'><a class='page-link' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        for($inicio;$inicio<=$fim;$inicio++){
+                            if(!isset($paginacao)){
+                                if($inicio == 0){
+                                    print "
+                                        <li class='page-item'><a class='page-link bg-primary text-white' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                                else{
+                                    print "
+                                        <li class='page-item'><a class='page-link' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                            }
+                            else{
+                                if($paginacao == $inicio){
+                                    print "
+                                        <li class='page-item'><a class='page-link bg-primary text-white' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                                else{
+                                    print "
+                                        <li class='page-item'><a class='page-link' href='?paginacao=".$inicio."'>".($inicio+1)."</a></li>
+                                    ";
+                                }
+                            }
+                        }
+                    }
+                    //print $valorOFFSET. "/ ".$fim;
+                    if(isset($_GET["paginacao"])){
+                        $paginacao = $_GET["paginacao"];
+                            if($exato == true){
+                                if($paginacao != ($fim-1)){
+                                    print "
+                                        <li class='page-item'><a class='page-link' href='?paginacao=".($fim-1)."'>Último</a></li>
+                                    ";
+                                ;}
+                            }
+                            else{
+                                if($paginacao != $fim){
+                                    print "
+                                        <li class='page-item'><a class='page-link' href='?paginacao=".$fim."'>Último</a></li>
+                                    ";
+                                }
+                            }
+                    }
+                    else{
+                        if($exato == true){
+                            print "
+                                <li class='page-item'><a class='page-link' href='?paginacao=".($fim-1)."'>Último</a></li>
+                            ";
+                        }
+                        else{
+                            
+                            print "
+                                <li class='page-item'><a class='page-link' href='?paginacao=".$fim."'>Último</a></li>
+                            ";
+                            
+                        }
+                    }
+                ?>
             </ul>
         </nav>
     </div>
